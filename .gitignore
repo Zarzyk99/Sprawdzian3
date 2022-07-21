@@ -1,0 +1,6 @@
+SprawdzianNr3.iml
+out
+.idea
+**/**/target
+**/**.iml
+**/**.txt
