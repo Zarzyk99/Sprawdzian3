@@ -2,21 +2,20 @@ package pl.kurs.zadanie1;
 
 import java.io.File;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class Runner {
 
-    private static File biggestFile = null;
-
-    private static void recurrentScanning(File[] filesToScan) {
+    private static void recurrentScanning(File[] filesToScan, AtomicReference<File> biggestFile) {
 
         for (File file : filesToScan)
             if (file.isDirectory())
-                recurrentScanning(Objects.requireNonNull(file.listFiles()));
+                recurrentScanning(Objects.requireNonNull(file.listFiles()), biggestFile);
             else if (isItJavaFile(file)) {
-                if (biggestFile == null)
-                    biggestFile = file;
-                else if (file.length() > biggestFile.length())
-                    biggestFile = file;
+                if (biggestFile.get() == null)
+                    biggestFile.set(file);
+                else if (file.length() > biggestFile.get().length())
+                    biggestFile.set(file);
             }
 
     }
@@ -28,6 +27,9 @@ public class Runner {
 
     public static void main(String[] args) {
 
+
+        AtomicReference<File> biggestFile = new AtomicReference<>(); //dzięki temu nie gubię referencji do podpisanego pliku :)
+
         String folder = "projects";
 
         File file = new File(folder);
@@ -37,18 +39,22 @@ public class Runner {
             return;
         }
 
-        recurrentScanning(Objects.requireNonNull(file.listFiles()));
+        recurrentScanning(Objects.requireNonNull(file.listFiles()), biggestFile);
 
-        if (biggestFile == null) {
+        if (biggestFile.get() == null) {
             System.out.println("Nie znaleziono żadnego pliku java");
             return;
         }
+
         System.out.println(
-                "Biggest file: " + biggestFile.getName() +
-                        ",\nwith path: " + biggestFile.getPath() +
-                        "\nand size: " + biggestFile.length()
+                "Biggest file: " + biggestFile.get().getName() +
+                        ",\nwith path: " + biggestFile.get().getPath() +
+                        "\nand size: " + biggestFile.get().length()
         );
 
 
     }
 }
+//Biggest file: ListRunner.java,
+//with path: projects\ColectionsFramework\src\main\java\pl\kurs\ListRunner.java
+//and size: 4587

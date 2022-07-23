@@ -7,55 +7,15 @@ import java.nio.file.LinkOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
 import java.sql.Date;
-import java.util.Calendar;
-import java.util.Objects;
+import java.util.*;
 
 public class Runner {
 
-    private enum Days {
-        MONDAY("Poniedzialek"),
-        TUESDAY("Wtorek"),
-        WEDNESDAY("Środa"),
-        THURSDAY("Czwartek"),
-        FRIDAY("Piątek"),
-        SATURDAY("Sobota"),
-        SUNDAY("Niedziela")
-        ;
-
-        private final String name;
-        private Integer count;
-
-        Days(String name) {
-            this.name = name;
-            this.count = 0;
-        }
-
-        @Override
-        public String toString() {
-            return "Day{" +
-                    "name='" + name + " -> " +
-                    "count=" + count +
-                    '}';
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public Integer getCount() {
-            return count;
-        }
-
-        public void setCount(Integer count) {
-            this.count = count;
-        }
-    }
-
-    private static void recurrentScanning(File[] filesToScan) {
+    private static void recurrentScanning(File[] filesToScan, HashMap<Integer, Day> days) {
 
         for (File file : filesToScan)
             if (file.isDirectory())
-                recurrentScanning(Objects.requireNonNull(file.listFiles()));
+                recurrentScanning(Objects.requireNonNull(file.listFiles()), days);
             else {
                 BasicFileAttributes attrs;
 
@@ -75,21 +35,27 @@ public class Runner {
 
                 int dayOfWeek = c.get(Calendar.DAY_OF_WEEK);
 
-                switch (dayOfWeek){
-                    case 1 -> Days.SUNDAY.setCount(Days.SUNDAY.getCount() + 1);
-                    case 2 -> Days.MONDAY.setCount(Days.MONDAY.getCount() + 1);
-                    case 3 -> Days.TUESDAY.setCount(Days.TUESDAY.getCount() + 1);
-                    case 4 -> Days.WEDNESDAY.setCount(Days.WEDNESDAY.getCount() + 1);
-                    case 5 -> Days.THURSDAY.setCount(Days.THURSDAY.getCount() + 1);
-                    case 6 -> Days.FRIDAY.setCount(Days.FRIDAY.getCount() + 1);
-                    case 7 -> Days.SATURDAY.setCount(Days.SATURDAY.getCount() + 1);
-                }
+                Day day = days.get(dayOfWeek);
+                day.setCount(day.getCount() + 1);
 
             }
     }
 
 
     public static void main(String[] args) {
+
+        HashMap<Integer, Day> days = new HashMap<>(
+                Map.of(
+                        1, new Day("Sunday"),
+                        2, new Day("Monday"),
+                        3, new Day("Tuesday"),
+                        4, new Day("Wednesday"),
+                        5, new Day("Thursday"),
+                        6, new Day("Friday"),
+                        7, new Day("Saturday")
+                )
+
+        );
 
         String folder = "C:/Projects";
 
@@ -100,18 +66,18 @@ public class Runner {
             return;
         }
 
-        recurrentScanning(Objects.requireNonNull(file.listFiles()));
+        recurrentScanning(Objects.requireNonNull(file.listFiles()), days);
 
-        for (Days day : Days.values())
+        for (Day day : days.values())
             System.out.println(day);
 
     }
 }
 
-//    Day{name='Poniedzialek -> count=63}
-//        Day{name='Wtorek -> count=626}
-//            Day{name='Środa -> count=78}
-//                Day{name='Czwartek -> count=104}
-//                    Day{name='Piątek -> count=328}
-//                        Day{name='Sobota -> count=55}
-//                            Day{name='Niedziela -> count=206}
+//    Day{name='Sunday', count=206}
+//    Day{name='Monday', count=63}
+//    Day{name='Tuesday', count=626}
+//    Day{name='Wednesday', count=78}
+//    Day{name='Thursday', count=456}
+//    Day{name='Friday', count=328}
+//    Day{name='Saturday', count=60}
